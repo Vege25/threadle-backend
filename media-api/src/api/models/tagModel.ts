@@ -8,9 +8,9 @@ import {MessageResponse} from '@sharedTypes/MessageTypes';
 const fetchAllTags = async (): Promise<TagResult[] | null> => {
   try {
     const [rows] = await promisePool.execute<RowDataPacket[] & TagResult[]>(
-      `SELECT Tags.tag_id, Tags.tag_name, MediaItemTags.media_id
+      `SELECT Tags.tag_id, Tags.tag_name, PostsTags.post_id
        FROM Tags
-       JOIN MediaItemTags ON Tags.tag_id = MediaItemTags.tag_id`
+       JOIN PostsTags ON Tags.tag_id = PostsTags.tag_id`
     );
     if (rows.length === 0) {
       return null;
@@ -38,8 +38,8 @@ const postTag = async (
     }
 
     const [mediaItemTagResult] = await connection.execute<ResultSetHeader>(
-      'INSERT INTO MediaItemTags (media_id, tag_id) VALUES (?, ?)',
-      [tag.media_id, tagResult.insertId]
+      'INSERT INTO PostsTags (post_id, tag_id) VALUES (?, ?)',
+      [tag.post_id, tagResult.insertId]
     );
 
     await connection.commit();
@@ -62,9 +62,9 @@ const postTag = async (
 const fetchMediaByTag = async (tag: string): Promise<TagResult[] | null> => {
   try {
     const [rows] = await promisePool.execute<RowDataPacket[] & TagResult[]>(
-      `SELECT Tags.tag_id, Tags.tag_name, MediaItemTags.media_id
+      `SELECT Tags.tag_id, Tags.tag_name, PostsTags.post_id
        FROM Tags
-       JOIN MediaItemTags ON Tags.tag_id = MediaItemTags.tag_id
+       JOIN PostsTags ON Tags.tag_id = PostsTags.tag_id
        WHERE Tags.tag_name = ?`,
       [tag]
     );
@@ -82,10 +82,10 @@ const fetchMediaByTag = async (tag: string): Promise<TagResult[] | null> => {
 const fetchTagsByMediaId = async (id: number): Promise<TagResult[] | null> => {
   try {
     const [rows] = await promisePool.execute<RowDataPacket[] & TagResult[]>(
-      `SELECT Tags.tag_id, Tags.tag_name, MediaItemTags.media_id
+      `SELECT Tags.tag_id, Tags.tag_name, PostsTags.post_id
        FROM Tags
-       JOIN MediaItemTags ON Tags.tag_id = MediaItemTags.tag_id
-       WHERE MediaItemTags.media_id = ?`,
+       JOIN PostsTags ON Tags.tag_id = PostsTags.tag_id
+       WHERE PostsTags.post_id = ?`,
       [id]
     );
     if (rows.length === 0) {
@@ -112,7 +112,7 @@ const deleteTag = async (id: number): Promise<MessageResponse | null> => {
     }
 
     const [mediaItemTagResult] = await connection.execute<ResultSetHeader>(
-      'DELETE FROM MediaItemTags WHERE tag_id = ?',
+      'DELETE FROM PostsTags WHERE tag_id = ?',
       [id]
     );
 

@@ -2,17 +2,16 @@ import {Request, Response, NextFunction} from 'express';
 import {
   deleteMedia,
   fetchAllMedia,
-  fetchAllMediaByAppId,
   fetchMediaById,
   postMedia,
 } from '../models/mediaModel';
 import CustomError from '../../classes/CustomError';
 import {MediaResponse, MessageResponse} from '@sharedTypes/MessageTypes';
-import {MediaItem, TokenContent} from '@sharedTypes/DBTypes';
+import {PostItem, TokenContent} from '@sharedTypes/DBTypes';
 
 const mediaListGet = async (
   req: Request,
-  res: Response<MediaItem[]>,
+  res: Response<PostItem[]>,
   next: NextFunction
 ) => {
   try {
@@ -28,27 +27,9 @@ const mediaListGet = async (
   }
 };
 
-const mediaListGetByAppId = async (
-  req: Request<{id: string}>,
-  res: Response<MediaItem[]>,
-  next: NextFunction
-) => {
-  try {
-    const media = await fetchAllMediaByAppId(req.params.id);
-    if (media === null) {
-      const error = new CustomError('No media found', 404);
-      next(error);
-      return;
-    }
-    res.json(media);
-  } catch (error) {
-    next(error);
-  }
-};
-
 const mediaGet = async (
   req: Request<{id: string}>,
-  res: Response<MediaItem>,
+  res: Response<PostItem>,
   next: NextFunction
 ) => {
   try {
@@ -66,7 +47,7 @@ const mediaGet = async (
 };
 
 const mediaPost = async (
-  req: Request<{}, {}, Omit<MediaItem, 'media_id' | 'created_at'>>,
+  req: Request<{}, {}, Omit<PostItem, 'media_id' | 'created_at'>>,
   res: Response<MediaResponse, {user: TokenContent}>,
   next: NextFunction
 ) => {
@@ -106,4 +87,4 @@ const mediaDelete = async (
   }
 };
 
-export {mediaListGet, mediaListGetByAppId, mediaGet, mediaPost, mediaDelete};
+export {mediaListGet, mediaGet, mediaPost, mediaDelete};

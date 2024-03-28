@@ -1,5 +1,5 @@
 import {ResultSetHeader, RowDataPacket} from 'mysql2';
-import {MediaItem, TokenContent} from '@sharedTypes/DBTypes';
+import {PostItem, TokenContent} from '@sharedTypes/DBTypes';
 import promisePool from '../../lib/db';
 import {fetchData} from '../../lib/functions';
 import {MessageResponse} from '@sharedTypes/MessageTypes';
@@ -11,38 +11,15 @@ import {MessageResponse} from '@sharedTypes/MessageTypes';
  * @throws {Error} - error if database query fails
  */
 
-const fetchAllMedia = async (): Promise<MediaItem[] | null> => {
+const fetchAllMedia = async (): Promise<PostItem[] | null> => {
   const uploadPath = process.env.UPLOAD_URL;
   try {
-    const [rows] = await promisePool.execute<RowDataPacket[] & MediaItem[]>(
+    const [rows] = await promisePool.execute<RowDataPacket[] & PostItem[]>(
       `SELECT *,
       CONCAT(?, filename) AS filename,
       CONCAT(?, CONCAT(filename, "-thumb.png")) AS thumbnail
-      FROM MediaItems`,
+      FROM Posts`,
       [uploadPath, uploadPath]
-    );
-    if (rows.length === 0) {
-      return null;
-    }
-    return rows;
-  } catch (e) {
-    console.error('fetchAllMedia error', (e as Error).message);
-    throw new Error((e as Error).message);
-  }
-};
-
-const fetchAllMediaByAppId = async (
-  id: string
-): Promise<MediaItem[] | null> => {
-  const uploadPath = process.env.UPLOAD_URL;
-  try {
-    const [rows] = await promisePool.execute<RowDataPacket[] & MediaItem[]>(
-      `SELECT *,
-      CONCAT(?, filename) AS filename,
-      CONCAT(?, CONCAT(filename, "-thumb.png")) AS thumbnail
-      FROM MediaItems
-      WHERE app_id = ?`,
-      [uploadPath, uploadPath, id]
     );
     if (rows.length === 0) {
       return null;
@@ -62,17 +39,17 @@ const fetchAllMediaByAppId = async (
  * @throws {Error} - error if database query fails
  */
 
-const fetchMediaById = async (id: number): Promise<MediaItem | null> => {
+const fetchMediaById = async (id: number): Promise<PostItem | null> => {
   const uploadPath = process.env.UPLOAD_URL;
   try {
     // TODO: replace * with specific column names needed in this case
     const sql = `SELECT *,
                 CONCAT(?, filename) AS filename,
                 CONCAT(?, CONCAT(filename, "-thumb.png")) AS thumbnail
-                FROM MediaItems
-                WHERE media_id=?`;
+                FROM Posts
+                WHERE post_id=?`;
     const params = [uploadPath, uploadPath, id];
-    const [rows] = await promisePool.execute<RowDataPacket[] & MediaItem[]>(
+    const [rows] = await promisePool.execute<RowDataPacket[] & PostItem[]>(
       sql,
       params
     );
@@ -94,17 +71,17 @@ const fetchMediaById = async (id: number): Promise<MediaItem | null> => {
  * @throws {Error} - error if database query fails
  */
 const postMedia = async (
-  media: Omit<MediaItem, 'media_id' | 'created_at'>
-): Promise<MediaItem | null> => {
+  media: Omit<PostItem, 'post_id' | 'created_at'>
+): Promise<PostItem | null> => {
   const {user_id, filename, filesize, media_type, title, description} = media;
-  const sql = `INSERT INTO MediaItems (user_id, filename, filesize, media_type, title, description)
+  const sql = `INSERT INTO Posts (user_id, filename, filesize, media_type, title, description)
                VALUES (?, ?, ?, ?, ?, ?)`;
   const params = [user_id, filename, filesize, media_type, title, description];
   try {
     const result = await promisePool.execute<ResultSetHeader>(sql, params);
     console.log('result', result);
-    const [rows] = await promisePool.execute<RowDataPacket[] & MediaItem[]>(
-      'SELECT * FROM MediaItems WHERE media_id = ?',
+    const [rows] = await promisePool.execute<RowDataPacket[] & PostItem[]>(
+      'SELECT * FROM Posts WHERE post_id = ?',
       [result[0].insertId]
     );
     if (rows.length === 0) {
@@ -127,17 +104,14 @@ const postMedia = async (
  */
 
 const putMedia = async (
-  media: Pick<MediaItem, 'title' | 'description'>,
+  media: Pick<PostItem, 'title' | 'description'>,
   id: number
 ) => {
   try {
-    const sql = promisePool.format('UPDATE MediaItems SET ? WHERE ?', [
-      media,
-      id,
-    ]);
+    const sql = promisePool.format('UPDATE Posts SET ? WHERE ?', [media, id]);
     const result = await promisePool.execute<ResultSetHeader>(sql);
     console.log('result', result);
-    return {media_id: result[0].insertId};
+    return {post_id: result[0].insertId};
   } catch (e) {
     console.error('error', (e as Error).message);
     throw new Error((e as Error).message);
@@ -183,15 +157,15 @@ const deleteMedia = async (
   try {
     await connection.beginTransaction();
 
-    await connection.execute('DELETE FROM Likes WHERE media_id = ?;', [id]);
+    await connection.execute('DELETE FROM Saves WHERE post_id = ?;', [id]);
 
-    await connection.execute('DELETE FROM Comments WHERE media_id = ?;', [id]);
+    await connection.execute('DELETE FROM Comments WHERE post_id = ?;', [id]);
 
-    await connection.execute('DELETE FROM Ratings WHERE media_id = ?;', [id]);
+    await connection.execute('DELETE FROM Ratings WHERE post_id = ?;', [id]);
 
     // ! user_id in SQL so that only the owner of the media item can delete it
     const [result] = await connection.execute<ResultSetHeader>(
-      'DELETE FROM MediaItems WHERE media_id = ? and user_id = ?;',
+      'DELETE FROM Posts WHERE post_id = ? and user_id = ?;',
       [id, user.user_id]
     );
 
@@ -237,44 +211,12 @@ const deleteMedia = async (
  * @throws {Error} - error if database query fails
  */
 
-const fetchMostLikedMedia = async (): Promise<MediaItem | undefined> => {
-  try {
-    const [rows] = await promisePool.execute<RowDataPacket[] & MediaItem[]>(
-      'SELECT * FROM `MostLikedMedia`'
-    );
-    if (rows.length === 0) {
-      return undefined;
-    }
-    rows[0].filename =
-      process.env.MEDIA_SERVER + '/uploads/' + rows[0].filename;
-  } catch (e) {
-    console.error('getMostLikedMedia error', (e as Error).message);
-    throw new Error((e as Error).message);
-  }
-};
-
 /**
  * Get all the most commented media items from the database
  *
  * @returns {object} - object containing all information about the most commented media item
  * @throws {Error} - error if database query fails
  */
-
-const fetchMostCommentedMedia = async (): Promise<MediaItem | undefined> => {
-  try {
-    const [rows] = await promisePool.execute<RowDataPacket[] & MediaItem[]>(
-      'SELECT * FROM `MostCommentedMedia`'
-    );
-    if (rows.length === 0) {
-      return undefined;
-    }
-    rows[0].filename =
-      process.env.MEDIA_SERVER + '/uploads/' + rows[0].filename;
-  } catch (e) {
-    console.error('getMostCommentedMedia error', (e as Error).message);
-    throw new Error((e as Error).message);
-  }
-};
 
 /**
  * Get all the highest rated media items from the database
@@ -283,31 +225,4 @@ const fetchMostCommentedMedia = async (): Promise<MediaItem | undefined> => {
  * @throws {Error} - error if database query fails
  */
 
-const fetchHighestRatedMedia = async (): Promise<MediaItem | undefined> => {
-  try {
-    const [rows] = await promisePool.execute<RowDataPacket[] & MediaItem[]>(
-      'SELECT * FROM `HighestRatedMedia`'
-    );
-    if (rows.length === 0) {
-      return undefined;
-    }
-    rows[0].filename =
-      process.env.MEDIA_SERVER + '/uploads/' + rows[0].filename;
-    return rows[0];
-  } catch (e) {
-    console.error('getHighestRatedMedia error', (e as Error).message);
-    throw new Error((e as Error).message);
-  }
-};
-
-export {
-  fetchAllMedia,
-  fetchAllMediaByAppId,
-  fetchMediaById,
-  postMedia,
-  deleteMedia,
-  fetchMostLikedMedia,
-  fetchMostCommentedMedia,
-  fetchHighestRatedMedia,
-  putMedia,
-};
+export {fetchAllMedia, fetchMediaById, postMedia, deleteMedia, putMedia};

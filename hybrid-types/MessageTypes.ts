@@ -1,4 +1,4 @@
-import { MediaItem, UserWithNoPassword } from './DBTypes';
+import { PostItem, UserWithNoPassword } from './DBTypes';
 
 type MessageResponse = {
   message: string;
@@ -9,7 +9,7 @@ type ErrorResponse = MessageResponse & {
 };
 
 type MediaResponse = MessageResponse & {
-  media: MediaItem | MediaItem[];
+  media: PostItem | PostItem[];
 };
 
 // for auth server

@@ -47,6 +47,7 @@ const login = async (
       username: user.username,
       email: user.email,
       created_at: user.created_at,
+      user_activity: user.user_activity,
       level_name: user.level_name,
     };
 

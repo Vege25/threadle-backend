@@ -14,6 +14,7 @@ const getUserById = async (id: number): Promise<UserWithNoPassword | null> => {
       Users.username,
       Users.email,
       Users.created_at,
+      Users.user_activity,
       UserLevels.level_name
     FROM Users
     JOIN UserLevels
@@ -43,6 +44,7 @@ const getAllUsers = async (): Promise<UserWithNoPassword[] | null> => {
       Users.username,
       Users.email,
       Users.created_at,
+      Users.user_activity,
       UserLevels.level_name
     FROM Users
     JOIN UserLevels
@@ -71,6 +73,7 @@ const getUserByEmail = async (email: string): Promise<UserWithLevel | null> => {
       Users.password,
       Users.email,
       Users.created_at,
+      Users.user_activity,
       UserLevels.level_name
     FROM Users
     JOIN UserLevels
@@ -101,6 +104,7 @@ const getUserByUsername = async (
       Users.password,
       Users.email,
       Users.created_at,
+      Users.user_activity,
       UserLevels.level_name
     FROM Users
     JOIN UserLevels
@@ -123,10 +127,10 @@ const createUser = async (user: User): Promise<UserWithNoPassword | null> => {
   try {
     const result = await promisePool.execute<ResultSetHeader>(
       `
-    INSERT INTO Users (username, password, email, user_level_id)
+    INSERT INTO Users (username, password, email, user_level_id, user_activity)
     VALUES (?, ?, ?, ?)
   `,
-      [user.username, user.password, user.email, 2]
+      [user.username, user.password, user.email, 2, 'Active']
     );
 
     if (result[0].affectedRows === 0) {
@@ -174,25 +178,25 @@ const deleteUser = async (id: number): Promise<UserDeleteResponse | null> => {
   try {
     await connection.beginTransaction();
     await connection.execute('DELETE FROM Comments WHERE user_id = ?;', [id]);
-    await connection.execute('DELETE FROM Likes WHERE user_id = ?;', [id]);
+    await connection.execute('DELETE FROM Saves WHERE user_id = ?;', [id]);
     await connection.execute('DELETE FROM Ratings WHERE user_id = ?;', [id]);
     await connection.execute(
-      'DELETE FROM Comments WHERE media_id IN (SELECT media_id FROM MediaItems WHERE user_id = ?);',
+      'DELETE FROM Comments WHERE post_id IN (SELECT post_id FROM Posts WHERE user_id = ?);',
       [id]
     );
     await connection.execute(
-      'DELETE FROM Likes WHERE media_id IN (SELECT media_id FROM MediaItems WHERE user_id = ?);',
+      'DELETE FROM Saves WHERE post_id IN (SELECT post_id FROM Posts WHERE user_id = ?);',
       [id]
     );
     await connection.execute(
-      'DELETE FROM Ratings WHERE media_id IN (SELECT media_id FROM MediaItems WHERE user_id = ?);',
+      'DELETE FROM Ratings WHERE post_id IN (SELECT post_id FROM Posts WHERE user_id = ?);',
       [id]
     );
     await connection.execute(
-      'DELETE FROM MediaItemTags WHERE media_id IN (SELECT media_id FROM MediaItems WHERE user_id = ?);',
+      'DELETE FROM PostsTags WHERE post_id IN (SELECT post_id FROM Posts WHERE user_id = ?);',
       [id]
     );
-    await connection.execute('DELETE FROM MediaItems WHERE user_id = ?;', [id]);
+    await connection.execute('DELETE FROM Posts WHERE user_id = ?;', [id]);
     const [result] = await connection.execute<ResultSetHeader>(
       'DELETE FROM Users WHERE user_id = ?;',
       [id]
