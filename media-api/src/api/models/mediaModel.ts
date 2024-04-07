@@ -31,6 +31,28 @@ const fetchAllMedia = async (): Promise<PostItem[] | null> => {
   }
 };
 
+const fetchAllMediaByUserId = async (
+  user_id: number
+): Promise<PostItem[] | null> => {
+  const uploadPath = process.env.UPLOAD_URL;
+  try {
+    const [rows] = await promisePool.execute<RowDataPacket[] & PostItem[]>(
+      `SELECT *,
+      CONCAT(?, filename) AS filename,
+      CONCAT(?, CONCAT(filename, "-thumb.png")) AS thumbnail
+      FROM Posts WHERE user_id = ?;`,
+      [uploadPath, uploadPath, user_id]
+    );
+    if (rows.length === 0) {
+      return null;
+    }
+    return rows;
+  } catch (e) {
+    console.error('fetchAllMediaByUserId error', (e as Error).message);
+    throw new Error((e as Error).message);
+  }
+};
+
 /**
  * Get media item by id from the database
  *
@@ -225,4 +247,11 @@ const deleteMedia = async (
  * @throws {Error} - error if database query fails
  */
 
-export {fetchAllMedia, fetchMediaById, postMedia, deleteMedia, putMedia};
+export {
+  fetchAllMedia,
+  fetchMediaById,
+  postMedia,
+  deleteMedia,
+  putMedia,
+  fetchAllMediaByUserId,
+};

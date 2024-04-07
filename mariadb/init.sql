@@ -3,6 +3,22 @@ DROP DATABASE IF EXISTS Threadle;
 CREATE DATABASE Threadle;
 USE Threadle;
 
+
+DROP TABLE IF EXISTS `UserLevels`;
+DROP TABLE IF EXISTS `Users`;
+DROP TABLE IF EXISTS `Themes`;
+DROP TABLE IF EXISTS `Posts`;
+DROP TABLE IF EXISTS `Chats`;
+DROP TABLE IF EXISTS `ChatMessages`;
+DROP TABLE IF EXISTS `CommentReplies`;
+DROP TABLE IF EXISTS `Comments`;
+DROP TABLE IF EXISTS `Saves`;
+DROP TABLE IF EXISTS `Ratings`;
+DROP TABLE IF EXISTS `Tags`;
+DROP TABLE IF EXISTS `PostsTags`;
+DROP TABLE IF EXISTS `Friends`;
+
+
 -- Create the tables
 
 CREATE TABLE `UserLevels` (
@@ -27,6 +43,8 @@ CREATE TABLE `Themes` (
   `color2` VARCHAR(50) NOT NULL,
   `color3` VARCHAR(50),
   `color4` VARCHAR(50),
+  `font1` VARCHAR(100),
+  `font2` VARCHAR(100),
   `created_at` TIMESTAMP DEFAULT (CURRENT_TIMESTAMP)
 );
 
@@ -206,9 +224,9 @@ INSERT INTO PostsTags (post_id, tag_id) VALUES
 (2, 3);
 
 INSERT INTO Themes (user_id, color1, color2) VALUES
-(1, '#800000', '#FFCCCC'), -- Red theme (darker: #800000, lighter: #FFCCCC)
-(1, '#FFFF00', '#FFFFCC'), -- Yellow theme (darker: #FFFF00, lighter: #FFFFCC)
-(1, '#008000', '#CCFFCC'), -- Green theme (darker: #008000, lighter: #CCFFCC)
-(1, '#FFC0CB', '#FFE6EE'), -- Pink theme (darker: #FFC0CB, lighter: #FFE6EE)
-(2, '#0000FF', '#CCCCFF'); -- Blue theme (darker: #0000FF, lighter: #CCCCFF)
+(1, '#800000', '#FFCCCC'),
+(1, '#FFFF00', '#FFFFCC'),
+(1, '#008000', '#CCFFCC'),
+(1, '#FFC0CB', '#FFE6EE'),
+(2, '#0000FF', '#CCCCFF');
 

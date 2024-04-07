@@ -13,5 +13,12 @@
       "@sharedTypes/*": ["../hybrid-types/*"]
     }
   },
-  "include": ["./*.js", "src/**/*.ts", "test/**/*.ts"]
+  "include": [
+    "./*.js",
+    "src/**/*.ts",
+    "test/**/*.ts",
+    "../media-api/src/api/routes/chatRoute.ts",
+    "../media-api/src/api/models/chatModel.ts",
+    "../media-api/src/api/controllers/chatController.ts"
+  ]
 }

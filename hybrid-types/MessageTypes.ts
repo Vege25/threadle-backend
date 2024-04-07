@@ -1,4 +1,4 @@
-import { PostItem, UserWithNoPassword } from './DBTypes';
+import { ChatMessages, PostItem, UserWithNoPassword } from './DBTypes';
 
 type MessageResponse = {
   message: string;
@@ -27,6 +27,13 @@ type UserDeleteResponse = MessageResponse & {
   user: { user_id: number };
 };
 
+type ChatResponse = {
+  chat_id: ChatMessages;
+  sender_id: number;
+  receiver_id: number;
+  created_at: Date | string;
+};
+
 // for upload server
 type UploadResponse = MessageResponse & {
   data: {
@@ -44,4 +51,5 @@ export type {
   UploadResponse,
   UserResponse,
   UserDeleteResponse,
+  ChatResponse,
 };

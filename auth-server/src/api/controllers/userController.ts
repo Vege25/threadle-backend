@@ -83,8 +83,6 @@ const userPost = async (
     const user = req.body;
     user.password = await bcrypt.hash(user.password, salt);
 
-    console.log(user);
-
     const newUser = await createUser(user);
     console.log('newUser', newUser);
     if (!newUser) {

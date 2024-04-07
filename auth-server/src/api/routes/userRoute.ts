@@ -26,25 +26,28 @@ const router = express.Router();
  * @apiSuccess {String} users.username User's username.
  * @apiSuccess {String} users.email User's email.
  * @apiSuccess {Date} users.created_at Timestamp when the user was created.
- * @apiSuccess {String} users.level_name User's level (Admin | User | Guest).
+ * @apiSuccess {String} users.user_activity User's Activity on app
+ * @apiSuccess {String} users.level_name User's level (Admin | Buyer | Seller | Guest).
  *
  * @apiSuccessExample {json} Success-Response:
  *     HTTP/1.1 200 OK
  *     [
  *       {
- *         "user_id": 1,
- *         "username": "DummyUser1",
- *         "email": "dummyuser1@example.com",
- *         "created_at": "2022-01-01T00:00:00.000Z",
- *         "level_name": "Admin"
- *       },
- *       {
- *         "user_id": 2,
- *         "username": "DummyUser2",
- *         "email": "dummyuser2@example.com",
- *         "created_at": "2022-02-02T00:00:00.000Z",
- *         "level_name": "User"
- *       }
+          "user_id": 1,
+          "username": "JohnDoe",
+          "email": "johndoe@example.com",
+          "created_at": "2024-03-31T11:54:29.000Z",
+          "user_activity": "Active",
+          "level_name": "Buyer"
+        },
+        {
+          "user_id": 2,
+          "username": "JaneSmith",
+          "email": "janesmith@example.com",
+          "created_at": "2024-03-31T11:54:29.000Z",
+          "user_activity": "Active",
+          "level_name": "Seller"
+        }
  *     ]
  */
 router.get('/', userListGet);
@@ -57,6 +60,7 @@ router.get('/', userListGet);
  * @apiParam (Request body) {String} username Username of the User.
  * @apiParam (Request body) {String} password Password of the User.
  * @apiParam (Request body) {String} email Email of the User.
+ * @apiParam (Request body) {number} user_level_id Optional level_id of the User (default 2).
  *
  * @apiSuccess {String} message Success message.
  * @apiSuccess {Object} user User's information.
@@ -64,19 +68,21 @@ router.get('/', userListGet);
  * @apiSuccess {String} user.username User's username.
  * @apiSuccess {String} user.email User's email.
  * @apiSuccess {Date} user.created_at Timestamp when the user was created.
- * @apiSuccess {String} user.level_name User's level (Admin | User | Guest).
+ * @apiSuccess {String} users.user_activity User's Activity on app
+ * @apiSuccess {String} user.level_name User's level (Admin | Buyer | Seller | Guest).
  *
  * @apiSuccessExample {json} Success-Response:
  *     HTTP/1.1 200 OK
  *     {
- *       "message": "user created",
- *       "user": {
- *         "user_id": 1,
- *         "username": "DummyUser",
- *         "email": "dummyuser@example.com",
- *         "created_at": "2022-01-01T00:00:00.000Z",
- *         "level_name": "User"
- *       }
+ *        "message": "user created",
+          "user": {
+              "user_id": 19,
+              "username": "veetiso9",
+              "email": "veetiso9@mail.com",
+              "created_at": "2024-04-07T04:05:54.000Z",
+              "user_activity": "Active",
+              "level_name": "Buyer"
+          }
  *     }
  */
 router.post(
@@ -84,6 +90,7 @@ router.post(
   body('username').notEmpty().isString().escape().trim().isLength({min: 3}),
   body('password').notEmpty().isString().escape().trim().isLength({min: 5}),
   body('email').isEmail(),
+  body('user_level_id').optional().isNumeric(),
   userPost
 );
 

@@ -125,19 +125,29 @@ const getUserByUsername = async (
 
 const createUser = async (user: User): Promise<UserWithNoPassword | null> => {
   try {
+    console.log('here');
     const result = await promisePool.execute<ResultSetHeader>(
       `
     INSERT INTO Users (username, password, email, user_level_id, user_activity)
-    VALUES (?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?);
   `,
-      [user.username, user.password, user.email, 2, 'Active']
+      [
+        user.username,
+        user.password,
+        user.email,
+        user.user_level_id === 3 ? 3 : 2,
+        'Active',
+      ]
     );
+    console.log('result', result);
 
     if (result[0].affectedRows === 0) {
       return null;
     }
+    console.log('here', result[0].insertId);
 
     const newUser = await getUserById(result[0].insertId);
+    console.log('newUser', newUser);
     return newUser;
   } catch (e) {
     console.error('createUser error', (e as Error).message);
