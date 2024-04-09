@@ -226,27 +226,6 @@ const deleteMedia = async (
   }
 };
 
-/**
- * Get all the most liked media items from the database
- *
- * @returns {object} - object containing all information about the most liked media item
- * @throws {Error} - error if database query fails
- */
-
-/**
- * Get all the most commented media items from the database
- *
- * @returns {object} - object containing all information about the most commented media item
- * @throws {Error} - error if database query fails
- */
-
-/**
- * Get all the highest rated media items from the database
- *
- * @returns {object} - object containing all information about the highest rated media item
- * @throws {Error} - error if database query fails
- */
-
 export {
   fetchAllMedia,
   fetchMediaById,
