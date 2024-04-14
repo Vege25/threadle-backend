@@ -125,6 +125,14 @@ CREATE TABLE `Friends` (
   `created_at` timestamp NOT NULL DEFAULT (current_timestamp())
 );
 
+CREATE TABLE `Notifications` (
+  `notification_id` int(11) PRIMARY KEY NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) DEFAULT null,
+  `message` text NOT NULL,
+  `viewed` ENUM ('yes', 'no') DEFAULT 'no',
+  `created_at` timestamp NOT NULL DEFAULT (current_timestamp())
+);
+
 CREATE UNIQUE INDEX `unique_friendship` ON `Friends` (`sender_id`, `receiver_id`);
 
 CREATE INDEX `user_id2` ON `Friends` (`receiver_id`);
@@ -149,7 +157,7 @@ ALTER TABLE `PostsTags` ADD FOREIGN KEY (`post_id`) REFERENCES `Posts` (`post_id
 
 ALTER TABLE `PostsTags` ADD FOREIGN KEY (`tag_id`) REFERENCES `Tags` (`tag_id`);
 
-ALTER TABLE `Users` ADD FOREIGN KEY (`user_id`) REFERENCES `Themes` (`user_id`);
+ALTER TABLE `Themes` ADD FOREIGN KEY (`user_id`) REFERENCES `Users` (`user_id`);
 
 ALTER TABLE `Chats` ADD FOREIGN KEY (`sender_id`) REFERENCES `Users` (`user_id`);
 
@@ -168,6 +176,8 @@ ALTER TABLE `ChatMessages` ADD FOREIGN KEY (`sender_id`) REFERENCES `Users` (`us
 ALTER TABLE `ChatMessages` ADD FOREIGN KEY (`receiver_id`) REFERENCES `Users` (`user_id`);
 
 ALTER TABLE `ChatMessages` ADD FOREIGN KEY (`chat_id`) REFERENCES `Chats` (`chat_id`);
+
+ALTER TABLE `Notifications` ADD FOREIGN KEY (`user_id`) REFERENCES `Users` (`user_id`);
 
 INSERT INTO UserLevels (level_name) VALUES ('Admin'), ('Buyer'), ('Seller'), ('Guest');
 

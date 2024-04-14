@@ -10,6 +10,7 @@ import {
   getFriendsById,
   getPendingFriendsById,
 } from '../models/friendModel';
+import {postNotification} from '../models/notificationModel';
 
 const friendsGet = async (
   req: Request,
@@ -57,6 +58,20 @@ const friendRequest = async (
       return;
     }
     console.log(result);
+
+    // Add notification
+    try {
+      await postNotification(
+        parseInt(req.params.id),
+        'You have a new friend request'
+      );
+    } catch (notificationError) {
+      const error = new CustomError('Notification not added', 500);
+      res.json(result);
+      next(error);
+      return;
+    }
+
     res.json(result);
   } catch (error) {
     next(new CustomError((error as Error).message, 500));
@@ -128,6 +143,20 @@ const friendAcceptPut = async (
       message: 'Friend request accepted',
       user: result,
     };
+
+    // Add notification
+    try {
+      await postNotification(
+        parseInt(req.params.id),
+        'Your friend request has been accepted'
+      );
+    } catch (notificationError) {
+      const error = new CustomError('Notification not added', 500);
+      res.json(response);
+      next(error);
+      return;
+    }
+
     res.json(response);
   } catch (error) {
     next(new CustomError((error as Error).message, 500));

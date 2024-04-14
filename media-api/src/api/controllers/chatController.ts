@@ -13,6 +13,7 @@ import {validationResult} from 'express-validator';
 import {ChatResponse, MessageResponse} from '@sharedTypes/MessageTypes';
 import {ChatMessages, UserWithNoPassword} from '@sharedTypes/DBTypes';
 import CustomError from '../../classes/CustomError';
+import {postNotification} from '../models/notificationModel';
 
 const messagesByChatId = async (
   req: Request<{id: string}>,
@@ -86,6 +87,22 @@ const chatMessagePost = async (
       return;
     }
     console.log('chat Added', messageRes);
+
+    // add notification
+    // Send notification to the other user_id
+    const userIdToSendNotif =
+      user.user_id === chat.sender_id ? chat.receiver_id : chat.sender_id;
+
+    const notificationRes = postNotification(
+      userIdToSendNotif,
+      'New Chat message'
+    );
+
+    if (!notificationRes) {
+      next(new CustomError('Notification not added', 500));
+      res.json(messageRes);
+      return;
+    }
     res.json(messageRes);
   } catch (error) {
     next(new CustomError('Duplicate entry', 200));

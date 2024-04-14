@@ -2,6 +2,7 @@ import {NextFunction, Request, Response} from 'express';
 import {
   deleteComment,
   fetchAllComments,
+  fetchCommentById,
   postComment,
   postCommentReply,
 } from '../models/commentModel';
@@ -10,6 +11,9 @@ import {Comment, TokenContent, UserLevel} from '@sharedTypes/DBTypes';
 import promisePool from '../../lib/db';
 import {ResultSetHeader, RowDataPacket} from 'mysql2';
 import {MediaResponse, MessageResponse} from '@sharedTypes/MessageTypes';
+import {postNotification} from '../models/notificationModel';
+import {mediaGet} from './mediaController';
+import {fetchMediaById} from '../models/mediaModel';
 
 const commentListGet = async (
   req: Request,
@@ -34,7 +38,6 @@ const commentPost = async (
   next: NextFunction
 ) => {
   try {
-    // add user_id to media object from token
     const user_id = Number(res.locals.user.user_id);
     const post_id = Number(req.params.id);
     const comment_text = String(req.body.comment_text);
@@ -46,11 +49,31 @@ const commentPost = async (
       next(error);
       return;
     }
+
+    const post = await fetchMediaById(post_id);
+    if (post === null) {
+      const error = new CustomError('Post not found', 404);
+      next(error);
+      return;
+    }
+
+    const postOwnerId = post.user_id;
+
+    // Add notification
+    try {
+      await postNotification(postOwnerId, 'New Comment on your post');
+    } catch (notificationError) {
+      const error = new CustomError('Notification not added', 500);
+      next(error);
+      return;
+    }
+
     res.json(newComment);
   } catch (error) {
     next(error);
   }
 };
+
 const commentReplyPost = async (
   req: Request<{id: string}>,
   res: Response<MessageResponse>,
@@ -73,6 +96,7 @@ const commentReplyPost = async (
       next(error);
       return;
     }
+
     res.json(newComment);
   } catch (error) {
     next(error);

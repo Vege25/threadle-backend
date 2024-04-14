@@ -98,6 +98,14 @@ type PostItemTag = {
   tag_id: number;
 };
 
+type Notification = {
+  notification_id: number;
+  user_id: number;
+  message: string;
+  viewed: boolean;
+  created_at: Date | string;
+};
+
 type TagResult = PostItemTag & Tag;
 
 type UploadResult = {
@@ -136,6 +144,12 @@ type FileInfo = {
   filename: string;
   user_id: number;
 };
+type Like = {
+  like_id: number;
+  media_id: number;
+  user_id: number;
+  created_at: Date;
+};
 
 export type {
   UserLevel,
@@ -159,4 +173,6 @@ export type {
   CommentReplies,
   Theme,
   Friend,
+  Notification,
+  Like,
 };
