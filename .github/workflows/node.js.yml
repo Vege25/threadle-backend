@@ -16,9 +16,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Change directory to auth-server
-        run: cd threadle-backend/auth-server
-
       - name: Use Node.js 14.x
         uses: actions/setup-node@v2
         with:
@@ -27,9 +24,12 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+        working-directory: threadle-backend/auth-server
 
       - name: Build if present (optional)
         run: npm run build --if-present
+        working-directory: threadle-backend/auth-server
 
       - name: Run unit tests
         run: npm run test:unit
+        working-directory: threadle-backend/auth-server
