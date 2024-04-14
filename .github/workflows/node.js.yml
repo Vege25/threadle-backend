@@ -16,15 +16,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Use Node.js 14.x
+      - name: Use Node.js 14.x for auth-server
         uses: actions/setup-node@v2
         with:
           node-version: '14.x'
           cache: 'npm'
+          path: threadle-backend/auth-server
 
       - name: Install dependencies, build, and test
         run: |
-          cd threadle-backend/auth-server
           npm ci
           npm run build --if-present
           npm run test:unit
+        working-directory: threadle-backend/auth-server
