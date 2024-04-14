@@ -10,6 +10,7 @@
     "postbuild": "npm run apidoc",
     "lint": "eslint --fix src test",
     "test": "jest --detectOpenHandles --forceExit",
+    "test:unit": "jest -c jest.unit.config.js",
     "apidoc": "apidoc -c apidoc.json -o public/"
   },
   "keywords": [],
