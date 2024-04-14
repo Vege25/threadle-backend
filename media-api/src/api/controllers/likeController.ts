@@ -6,6 +6,8 @@ import {
   deleteLike,
 } from '../models/likeModel';
 import CustomError from '../../classes/CustomError';
+import {postNotification} from '../models/notificationModel';
+import {fetchMediaById} from '../models/mediaModel';
 
 const likePost = async (
   req: Request<{post_id: string}>,
@@ -19,6 +21,25 @@ const likePost = async (
     const result = await postLike(post_id, user_id);
     if (result === null) {
       throw new CustomError('Failed to add like', 500);
+    }
+
+    const post = await fetchMediaById(post_id);
+    if (post === null) {
+      const error = new CustomError('Post not found', 404);
+      next(error);
+      return;
+    }
+
+    const postOwnerId = post.user_id;
+
+    // Add notification
+    try {
+      await postNotification(postOwnerId, 'Someone saved your post');
+    } catch (notificationError) {
+      const error = new CustomError('Notification not added', 500);
+      res.json(result);
+      next(error);
+      return;
     }
 
     res.json(result);

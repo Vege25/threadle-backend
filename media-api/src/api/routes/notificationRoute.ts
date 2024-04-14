@@ -61,9 +61,7 @@ const router = express.Router();
  *     }
  */
 
-router
-  .route('/')
-  .get(authenticate, notificationListGet)
-  .put(authenticate, putNotification);
+router.route('/').get(authenticate, notificationListGet);
+router.route('/:id').put(authenticate, putNotification);
 
 export default router;
