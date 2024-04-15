@@ -8,7 +8,8 @@ import {
 } from '../models/tagModel';
 import CustomError from '../../classes/CustomError';
 import {MessageResponse} from '@sharedTypes/MessageTypes';
-import {TagResult} from '@sharedTypes/DBTypes';
+import {PostItem, TagResult} from '@sharedTypes/DBTypes';
+import {fetchMediaById} from '../models/mediaModel';
 
 // list of tags
 const tagListGet = async (

@@ -84,6 +84,31 @@ const fetchMediaById = async (id: number): Promise<PostItem | null> => {
     throw new Error((e as Error).message);
   }
 };
+const fetchHighlightMediaById = async (
+  user_id: number
+): Promise<PostItem | null> => {
+  const uploadPath = process.env.UPLOAD_URL;
+  try {
+    // TODO: replace * with specific column names needed in this case
+    const sql = `SELECT *,
+                CONCAT(?, filename) AS filename,
+                CONCAT(?, CONCAT(filename, "-thumb.png")) AS thumbnail
+                FROM Posts
+                WHERE user_id=? AND highlight = 1`;
+    const params = [uploadPath, uploadPath, user_id];
+    const [rows] = await promisePool.execute<RowDataPacket[] & PostItem[]>(
+      sql,
+      params
+    );
+    if (rows.length === 0) {
+      return null;
+    }
+    return rows[0];
+  } catch (e) {
+    console.error('fetchHighlightMediaById error', (e as Error).message);
+    throw new Error((e as Error).message);
+  }
+};
 
 /**
  * Add new media item to database
@@ -96,9 +121,17 @@ const postMedia = async (
   media: Omit<PostItem, 'post_id' | 'created_at'>
 ): Promise<PostItem | null> => {
   const {user_id, filename, filesize, media_type, title, description} = media;
-  const sql = `INSERT INTO Posts (user_id, filename, filesize, media_type, title, description)
-               VALUES (?, ?, ?, ?, ?, ?)`;
-  const params = [user_id, filename, filesize, media_type, title, description];
+  const sql = `INSERT INTO Posts (user_id, filename, filesize, media_type, title, description, highlight)
+               VALUES (?, ?, ?, ?, ?, ?, ?)`;
+  const params = [
+    user_id,
+    filename,
+    filesize,
+    media_type,
+    title,
+    description,
+    false,
+  ];
   try {
     const result = await promisePool.execute<ResultSetHeader>(sql, params);
     console.log('result', result);
@@ -226,6 +259,32 @@ const deleteMedia = async (
   }
 };
 
+const highlightMediaPut = async (
+  post_id: number,
+  user_id: number
+): Promise<MessageResponse> => {
+  const connection = await promisePool.getConnection();
+  try {
+    await connection.beginTransaction();
+    await connection.execute(
+      'UPDATE Posts SET highlight = 0 WHERE user_id = ?',
+      [user_id]
+    );
+    await connection.execute(
+      'UPDATE Posts SET highlight = 1 WHERE post_id = ? AND user_id = ?',
+      [post_id, user_id]
+    );
+    await connection.commit();
+    return {message: 'Media highlighted'};
+  } catch (error) {
+    await connection.rollback();
+    console.error('highlightMediaPut error:', error);
+    throw new Error((error as Error).message);
+  } finally {
+    connection.release();
+  }
+};
+
 export {
   fetchAllMedia,
   fetchMediaById,
@@ -233,4 +292,6 @@ export {
   deleteMedia,
   putMedia,
   fetchAllMediaByUserId,
+  fetchHighlightMediaById,
+  highlightMediaPut,
 };

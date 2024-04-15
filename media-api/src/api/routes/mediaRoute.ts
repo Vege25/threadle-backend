@@ -1,5 +1,7 @@
 import express from 'express';
 import {
+  highlightMedia,
+  highlightMediaGet,
   mediaDelete,
   mediaGet,
   mediaListGet,
@@ -194,5 +196,9 @@ const router = express.Router();
 router.route('/').get(mediaListGet).post(authenticate, mediaPost);
 router.route('/all/:id').get(mediaListGetByUserId);
 router.route('/:id').get(mediaGet).delete(authenticate, mediaDelete);
+router
+  .route('/highlight')
+  .get(authenticate, highlightMediaGet)
+  .put(authenticate, highlightMedia);
 
 export default router;

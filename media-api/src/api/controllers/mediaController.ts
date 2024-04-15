@@ -3,7 +3,9 @@ import {
   deleteMedia,
   fetchAllMedia,
   fetchAllMediaByUserId,
+  fetchHighlightMediaById,
   fetchMediaById,
+  highlightMediaPut,
   postMedia,
 } from '../models/mediaModel';
 import CustomError from '../../classes/CustomError';
@@ -46,6 +48,24 @@ const mediaGet = async (
     next(error);
   }
 };
+const highlightMediaGet = async (
+  req: Request,
+  res: Response<PostItem>,
+  next: NextFunction
+) => {
+  try {
+    const user_id = parseInt(res.locals.user.user_id);
+    const media = await fetchHighlightMediaById(user_id);
+    if (media === null) {
+      const error = new CustomError('No highlight found for this user', 404);
+      next(error);
+      return;
+    }
+    res.json(media);
+  } catch (error) {
+    next(error);
+  }
+};
 
 const mediaPost = async (
   req: Request<{}, {}, Omit<PostItem, 'post_id' | 'created_at'>>,
@@ -63,6 +83,26 @@ const mediaPost = async (
       return;
     }
     res.json({message: 'Media created', media: newMedia});
+  } catch (error) {
+    next(error);
+  }
+};
+const highlightMedia = async (
+  req: Request,
+  res: Response<MessageResponse>,
+  next: NextFunction
+) => {
+  try {
+    const user_id = Number(res.locals.user.user_id);
+    const post_id = Number(req.body.post_id);
+
+    const highlightMediaRes = await highlightMediaPut(post_id, user_id);
+    if (highlightMediaRes === null) {
+      const error = new CustomError('Media not highlighted', 500);
+      next(error);
+      return;
+    }
+    res.json({message: 'Media highlighted'});
   } catch (error) {
     next(error);
   }
@@ -107,4 +147,12 @@ const mediaListGetByUserId = async (
   }
 };
 
-export {mediaListGet, mediaGet, mediaPost, mediaDelete, mediaListGetByUserId};
+export {
+  mediaListGet,
+  highlightMediaGet,
+  mediaGet,
+  mediaPost,
+  mediaDelete,
+  mediaListGetByUserId,
+  highlightMedia,
+};

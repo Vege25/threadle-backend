@@ -12,7 +12,8 @@ const router = express.Router();
 
 router.route('/').get(tagListGet).post(authenticate, tagPost);
 
-router.route('/:id').get(tagMediaGet).delete(authenticate, tagDelete);
+router.route('/:id').delete(authenticate, tagDelete);
+router.route('/:tag').get(tagMediaGet);
 
 router.route('/media/:id').get(mediaTagsGet);
 
