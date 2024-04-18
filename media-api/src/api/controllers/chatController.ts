@@ -2,10 +2,8 @@ import {NextFunction, Request, Response} from 'express';
 import {
   addChat,
   addChatMessage,
-  getChatByChatId,
   getChatBySenderReceiver,
   getChatMessagesByChatId,
-  getMessagesByChatId,
   getMyChats,
   resetMessages,
 } from '../models/chatModel';
@@ -53,6 +51,8 @@ const chatMessagePost = async (
   try {
     const user: UserWithNoPassword = res.locals.user;
     const message: string | undefined = req.body.message;
+    const sender_id = req.body.sender_id;
+    const receiver_id = req.body.receiver_id;
     const chat_id = Number(req.params.id);
 
     if (!user) {
@@ -67,19 +67,12 @@ const chatMessagePost = async (
       next(new CustomError('Message not found', 404));
       return;
     }
-    // Check if chat already exists
-    const chat = await getChatByChatId(chat_id);
-    if (!chat) {
-      next(new CustomError('Chat not found', 404));
-      return;
-    }
-    console.log('chat', chat);
 
     // Add chat message to chat
     const messageRes = await addChatMessage(
       chat_id,
-      chat.sender_id,
-      chat.receiver_id,
+      sender_id,
+      receiver_id,
       message
     );
     if (!messageRes) {
@@ -91,7 +84,7 @@ const chatMessagePost = async (
     // add notification
     // Send notification to the other user_id
     const userIdToSendNotif =
-      user.user_id === chat.sender_id ? chat.receiver_id : chat.sender_id;
+      user.user_id === sender_id ? receiver_id : sender_id;
 
     const notificationRes = postNotification(
       userIdToSendNotif,
