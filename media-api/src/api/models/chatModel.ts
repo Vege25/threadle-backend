@@ -1,6 +1,6 @@
 import {ResultSetHeader, RowDataPacket} from 'mysql2';
 
-import {ChatMessages} from '@sharedTypes/DBTypes';
+import {ChatMessages, Chats} from '@sharedTypes/DBTypes';
 import {ChatResponse, MessageResponse} from '@sharedTypes/MessageTypes';
 import promisePool from '../../lib/db';
 
@@ -119,9 +119,9 @@ const addChatMessage = async (
     throw new Error((e as Error).message);
   }
 };
-const getMyChats = async (id: number): Promise<ChatResponse[] | null> => {
+const getMyChats = async (id: number): Promise<Chats[] | null> => {
   try {
-    const [rows] = await promisePool.execute<RowDataPacket[] & ChatResponse[]>(
+    const [rows] = await promisePool.execute<RowDataPacket[] & Chats[]>(
       `
       SELECT c.chat_id, c.receiver_id, c.sender_id, c.created_at
       FROM Chats c

@@ -11,7 +11,7 @@ import {
 } from '../models/chatModel';
 import {validationResult} from 'express-validator';
 import {ChatResponse, MessageResponse} from '@sharedTypes/MessageTypes';
-import {ChatMessages, UserWithNoPassword} from '@sharedTypes/DBTypes';
+import {ChatMessages, Chats, UserWithNoPassword} from '@sharedTypes/DBTypes';
 import CustomError from '../../classes/CustomError';
 import {postNotification} from '../models/notificationModel';
 
@@ -110,7 +110,7 @@ const chatMessagePost = async (
 };
 const getAllMyChats = async (
   req: Request,
-  res: Response<ChatResponse[]>,
+  res: Response<Chats[]>,
   next: NextFunction
 ) => {
   try {

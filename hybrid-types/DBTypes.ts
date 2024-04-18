@@ -8,6 +8,7 @@ type User = {
   username: string;
   password: string;
   email: string;
+  description: string | null;
   user_level_id: number;
   user_activity: 'Active' | 'Away' | 'Do not disturb';
   created_at: Date | string;
@@ -23,6 +24,7 @@ type PostItem = {
   title: string;
   description: string | null;
   created_at: Date | string;
+  highlight: boolean;
 };
 
 type Chats = {

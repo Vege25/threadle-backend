@@ -1,13 +1,14 @@
 import {RowDataPacket} from 'mysql2';
 import promisePool from '../../lib/db';
 import {MessageResponse} from '@sharedTypes/MessageTypes';
+import {Notification} from '@sharedTypes/DBTypes';
 
 const fetchAllNotifications = async (
   user_id: number
 ): Promise<Notification[] | null> => {
   try {
     const [rows] = await promisePool.execute<RowDataPacket[] & Notification[]>(
-      'SELECT * FROM Notifications WHERE user_id = ?;',
+      'SELECT * FROM Notifications WHERE user_id = ? AND viewed = "no";',
       [user_id]
     );
     if (rows.length === 0) {

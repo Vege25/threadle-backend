@@ -6,6 +6,7 @@ import {
   postNotification,
 } from '../models/notificationModel';
 import {MessageResponse} from '@sharedTypes/MessageTypes';
+import {Notification} from '@sharedTypes/DBTypes';
 
 const notificationListGet = async (
   req: Request,

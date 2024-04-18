@@ -14,6 +14,7 @@ const getUserById = async (id: number): Promise<UserWithNoPassword | null> => {
       Users.username,
       Users.email,
       Users.created_at,
+      Users.description,
       Users.user_activity,
       UserLevels.level_name
     FROM Users
@@ -43,6 +44,7 @@ const getAllUsers = async (): Promise<UserWithNoPassword[] | null> => {
       Users.user_id,
       Users.username,
       Users.email,
+      Users.description,
       Users.created_at,
       Users.user_activity,
       UserLevels.level_name
@@ -72,6 +74,7 @@ const getUserByEmail = async (email: string): Promise<UserWithLevel | null> => {
       Users.username,
       Users.password,
       Users.email,
+      Users.description,
       Users.created_at,
       Users.user_activity,
       UserLevels.level_name
@@ -103,6 +106,7 @@ const getUserByUsername = async (
       Users.username,
       Users.password,
       Users.email,
+      Users.description,
       Users.created_at,
       Users.user_activity,
       UserLevels.level_name
@@ -128,8 +132,8 @@ const createUser = async (user: User): Promise<UserWithNoPassword | null> => {
     console.log('here');
     const result = await promisePool.execute<ResultSetHeader>(
       `
-    INSERT INTO Users (username, password, email, user_level_id, user_activity)
-    VALUES (?, ?, ?, ?, ?);
+    INSERT INTO Users (username, password, email, user_level_id, user_activity, Description)
+    VALUES (?, ?, ?, ?, ?, ?);
   `,
       [
         user.username,
@@ -137,6 +141,7 @@ const createUser = async (user: User): Promise<UserWithNoPassword | null> => {
         user.email,
         user.user_level_id === 3 ? 3 : 2,
         'Active',
+        user.description ? user.description : null,
       ]
     );
     console.log('result', result);

@@ -23,7 +23,7 @@ router.use('/chat', chatRoute);
 router.use('/comment', commentRoute);
 router.use('/theme', themeRoute);
 router.use('/friends', friendRoute);
-router.use('/notificaitons', notificationRoute);
+router.use('/notifications', notificationRoute);
 router.use('/like', likeRoute);
 
 export default router;

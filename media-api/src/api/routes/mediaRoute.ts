@@ -196,9 +196,7 @@ const router = express.Router();
 router.route('/').get(mediaListGet).post(authenticate, mediaPost);
 router.route('/all/:id').get(mediaListGetByUserId);
 router.route('/:id').get(mediaGet).delete(authenticate, mediaDelete);
-router
-  .route('/highlight')
-  .get(authenticate, highlightMediaGet)
-  .put(authenticate, highlightMedia);
+router.route('/highlight').put(authenticate, highlightMedia);
+router.route('/highlight/:id').get(highlightMediaGet);
 
 export default router;

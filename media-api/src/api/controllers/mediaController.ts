@@ -49,13 +49,13 @@ const mediaGet = async (
   }
 };
 const highlightMediaGet = async (
-  req: Request,
+  req: Request<{id: string}>,
   res: Response<PostItem>,
   next: NextFunction
 ) => {
   try {
-    const user_id = parseInt(res.locals.user.user_id);
-    const media = await fetchHighlightMediaById(user_id);
+    const id = parseInt(req.params.id);
+    const media = await fetchHighlightMediaById(id);
     if (media === null) {
       const error = new CustomError('No highlight found for this user', 404);
       next(error);

@@ -30,10 +30,12 @@ CREATE TABLE `Users` (
   `user_id` INT PRIMARY KEY AUTO_INCREMENT,
   `username` VARCHAR(50) UNIQUE NOT NULL,
   `password` VARCHAR(255) NOT NULL,
+  `description` VARCHAR(255),
   `email` VARCHAR(100) UNIQUE NOT NULL,
   `user_level_id` INT,
   `user_activity` ENUM ('Active', 'Away', 'Do not disturb') DEFAULT 'Active',
-  `created_at` TIMESTAMP DEFAULT (CURRENT_TIMESTAMP)
+  `created_at` TIMESTAMP DEFAULT (CURRENT_TIMESTAMP),
+  FOREIGN KEY (`user_level_id`) REFERENCES `UserLevels` (`level_id`)
 );
 
 CREATE TABLE `Themes` (
@@ -45,7 +47,8 @@ CREATE TABLE `Themes` (
   `color4` VARCHAR(50),
   `font1` VARCHAR(100),
   `font2` VARCHAR(100),
-  `created_at` TIMESTAMP DEFAULT (CURRENT_TIMESTAMP)
+  `created_at` TIMESTAMP DEFAULT (CURRENT_TIMESTAMP),
+  FOREIGN KEY (`user_id`) REFERENCES `Users` (`user_id`)
 );
 
 CREATE TABLE `Posts` (
@@ -56,14 +59,18 @@ CREATE TABLE `Posts` (
   `media_type` VARCHAR(255) NOT NULL,
   `title` VARCHAR(255) NOT NULL,
   `description` VARCHAR(255),
-  `created_at` TIMESTAMP DEFAULT (CURRENT_TIMESTAMP)
+  `highlight` Boolean DEFAULT false,
+  `created_at` TIMESTAMP DEFAULT (CURRENT_TIMESTAMP),
+  FOREIGN KEY (`user_id`) REFERENCES `Users` (`user_id`)
 );
 
 CREATE TABLE `Chats` (
   `chat_id` INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
   `sender_id` INT NOT NULL,
   `receiver_id` INT NOT NULL,
-  `created_at` TIMESTAMP DEFAULT (CURRENT_TIMESTAMP)
+  `created_at` TIMESTAMP DEFAULT (CURRENT_TIMESTAMP),
+  FOREIGN KEY (`sender_id`) REFERENCES `Users` (`user_id`),
+  FOREIGN KEY (`receiver_id`) REFERENCES `Users` (`user_id`)
 );
 
 CREATE TABLE `ChatMessages` (
@@ -72,15 +79,10 @@ CREATE TABLE `ChatMessages` (
   `sender_id` INT NOT NULL,
   `receiver_id` INT NOT NULL,
   `message` TEXT NOT NULL,
-  `created_at` TIMESTAMP DEFAULT (CURRENT_TIMESTAMP)
-);
-
-CREATE TABLE `CommentReplies` (
-  `reply_id` INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
-  `comment_id` INT NOT NULL,
-  `user_id` INT NOT NULL,
-  `message` TEXT NOT NULL,
-  `created_at` TIMESTAMP DEFAULT (CURRENT_TIMESTAMP)
+  `created_at` TIMESTAMP DEFAULT (CURRENT_TIMESTAMP),
+  FOREIGN KEY (`chat_id`) REFERENCES `Chats` (`chat_id`),
+  FOREIGN KEY (`sender_id`) REFERENCES `Users` (`user_id`),
+  FOREIGN KEY (`receiver_id`) REFERENCES `Users` (`user_id`)
 );
 
 CREATE TABLE `Comments` (
@@ -88,14 +90,28 @@ CREATE TABLE `Comments` (
   `post_id` INT NOT NULL,
   `user_id` INT NOT NULL,
   `comment_text` TEXT NOT NULL,
-  `created_at` TIMESTAMP DEFAULT (CURRENT_TIMESTAMP)
+  `created_at` TIMESTAMP DEFAULT (CURRENT_TIMESTAMP),
+  FOREIGN KEY (`post_id`) REFERENCES `Posts` (`post_id`),
+  FOREIGN KEY (`user_id`) REFERENCES `Users` (`user_id`)
+);
+
+CREATE TABLE `CommentReplies` (
+  `reply_id` INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+  `comment_id` INT NOT NULL,
+  `user_id` INT NOT NULL,
+  `message` TEXT NOT NULL,
+  `created_at` TIMESTAMP DEFAULT (CURRENT_TIMESTAMP),
+  FOREIGN KEY (`comment_id`) REFERENCES `Comments` (`comment_id`),
+  FOREIGN KEY (`user_id`) REFERENCES `Users` (`user_id`)
 );
 
 CREATE TABLE `Saves` (
   `save_id` INT PRIMARY KEY AUTO_INCREMENT,
   `post_id` INT NOT NULL,
   `user_id` INT NOT NULL,
-  `created_at` TIMESTAMP DEFAULT (CURRENT_TIMESTAMP)
+  `created_at` TIMESTAMP DEFAULT (CURRENT_TIMESTAMP),
+  FOREIGN KEY (`post_id`) REFERENCES `Posts` (`post_id`),
+  FOREIGN KEY (`user_id`) REFERENCES `Users` (`user_id`)
 );
 
 CREATE TABLE `Ratings` (
@@ -103,7 +119,9 @@ CREATE TABLE `Ratings` (
   `post_id` INT NOT NULL,
   `user_id` INT NOT NULL,
   `rating_value` INT NOT NULL,
-  `created_at` TIMESTAMP DEFAULT (CURRENT_TIMESTAMP)
+  `created_at` TIMESTAMP DEFAULT (CURRENT_TIMESTAMP),
+  FOREIGN KEY (`post_id`) REFERENCES `Posts` (`post_id`),
+  FOREIGN KEY (`user_id`) REFERENCES `Users` (`user_id`)
 );
 
 CREATE TABLE `Tags` (
@@ -114,7 +132,9 @@ CREATE TABLE `Tags` (
 CREATE TABLE `PostsTags` (
   `post_id` INT NOT NULL,
   `tag_id` INT NOT NULL,
-  PRIMARY KEY (`post_id`, `tag_id`)
+  PRIMARY KEY (`post_id`, `tag_id`),
+  FOREIGN KEY (`post_id`) REFERENCES `Posts` (`post_id`),
+  FOREIGN KEY (`tag_id`) REFERENCES `Tags` (`tag_id`)
 );
 
 CREATE TABLE `Friends` (
@@ -122,7 +142,9 @@ CREATE TABLE `Friends` (
   `sender_id` int(11) DEFAULT null,
   `receiver_id` int(11) DEFAULT null,
   `status` ENUM ('pending', 'accepted', 'declined') DEFAULT 'pending',
-  `created_at` timestamp NOT NULL DEFAULT (current_timestamp())
+  `created_at` timestamp NOT NULL DEFAULT (current_timestamp()),
+  FOREIGN KEY (`sender_id`) REFERENCES `Users` (`user_id`),
+  FOREIGN KEY (`receiver_id`) REFERENCES `Users` (`user_id`)
 );
 
 CREATE TABLE `Notifications` (
@@ -130,54 +152,11 @@ CREATE TABLE `Notifications` (
   `user_id` int(11) DEFAULT null,
   `message` text NOT NULL,
   `viewed` ENUM ('yes', 'no') DEFAULT 'no',
-  `created_at` timestamp NOT NULL DEFAULT (current_timestamp())
+  `created_at` timestamp NOT NULL DEFAULT (current_timestamp()),
+  FOREIGN KEY (`user_id`) REFERENCES `Users` (`user_id`)
 );
 
 CREATE UNIQUE INDEX `unique_friendship` ON `Friends` (`sender_id`, `receiver_id`);
-
-CREATE INDEX `user_id2` ON `Friends` (`receiver_id`);
-
-ALTER TABLE `Users` ADD FOREIGN KEY (`user_level_id`) REFERENCES `UserLevels` (`level_id`);
-
-ALTER TABLE `Posts` ADD FOREIGN KEY (`user_id`) REFERENCES `Users` (`user_id`);
-
-ALTER TABLE `Comments` ADD FOREIGN KEY (`post_id`) REFERENCES `Posts` (`post_id`);
-
-ALTER TABLE `Comments` ADD FOREIGN KEY (`user_id`) REFERENCES `Users` (`user_id`);
-
-ALTER TABLE `Saves` ADD FOREIGN KEY (`post_id`) REFERENCES `Posts` (`post_id`);
-
-ALTER TABLE `Saves` ADD FOREIGN KEY (`user_id`) REFERENCES `Users` (`user_id`);
-
-ALTER TABLE `Ratings` ADD FOREIGN KEY (`post_id`) REFERENCES `Posts` (`post_id`);
-
-ALTER TABLE `Ratings` ADD FOREIGN KEY (`user_id`) REFERENCES `Users` (`user_id`);
-
-ALTER TABLE `PostsTags` ADD FOREIGN KEY (`post_id`) REFERENCES `Posts` (`post_id`);
-
-ALTER TABLE `PostsTags` ADD FOREIGN KEY (`tag_id`) REFERENCES `Tags` (`tag_id`);
-
-ALTER TABLE `Themes` ADD FOREIGN KEY (`user_id`) REFERENCES `Users` (`user_id`);
-
-ALTER TABLE `Chats` ADD FOREIGN KEY (`sender_id`) REFERENCES `Users` (`user_id`);
-
-ALTER TABLE `Chats` ADD FOREIGN KEY (`receiver_id`) REFERENCES `Users` (`user_id`);
-
-ALTER TABLE `Friends` ADD FOREIGN KEY (`sender_id`) REFERENCES `Users` (`user_id`);
-
-ALTER TABLE `Friends` ADD FOREIGN KEY (`receiver_id`) REFERENCES `Users` (`user_id`);
-
-ALTER TABLE `CommentReplies` ADD FOREIGN KEY (`comment_id`) REFERENCES `Comments` (`comment_id`);
-
-ALTER TABLE `CommentReplies` ADD FOREIGN KEY (`user_id`) REFERENCES `Users` (`user_id`);
-
-ALTER TABLE `ChatMessages` ADD FOREIGN KEY (`sender_id`) REFERENCES `Users` (`user_id`);
-
-ALTER TABLE `ChatMessages` ADD FOREIGN KEY (`receiver_id`) REFERENCES `Users` (`user_id`);
-
-ALTER TABLE `ChatMessages` ADD FOREIGN KEY (`chat_id`) REFERENCES `Chats` (`chat_id`);
-
-ALTER TABLE `Notifications` ADD FOREIGN KEY (`user_id`) REFERENCES `Users` (`user_id`);
 
 INSERT INTO UserLevels (level_name) VALUES ('Admin'), ('Buyer'), ('Seller'), ('Guest');
 
@@ -224,7 +203,32 @@ INSERT INTO Ratings (post_id, user_id, rating_value) VALUES
 (2, 1, 4),
 (1, 3, 4);
 
-INSERT INTO Tags (tag_name) VALUES ('Nature'), ('Video'), ('Documentary'), ('Landscape');
+INSERT INTO Tags (tag_name) VALUES 
+('Handmade'),
+('Clothing'),
+('Accessories'),
+('Jewelry'),
+('Hats'),
+('Bags'),
+('Shoes'),
+('Home Decor'),
+('Art'),
+('Crafts'),
+('Knitting'),
+('Crochet'),
+('Embroidery'),
+('Pottery'),
+('Woodworking'),
+('Leatherwork'),
+('Candles'),
+('Soap'),
+('Custom'),
+('Personalized'),
+('Gifts'),
+('Vintage'),
+('Upcycled'),
+('Recycled'),
+('DIY');
 
 INSERT INTO PostsTags (post_id, tag_id) VALUES
 (1, 1),

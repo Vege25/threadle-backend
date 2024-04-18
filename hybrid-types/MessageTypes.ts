@@ -28,9 +28,10 @@ type UserDeleteResponse = MessageResponse & {
 };
 
 type ChatResponse = {
-  chat_id: ChatMessages;
+  chat_id: number;
   sender_id: number;
   receiver_id: number;
+  other_user: UserWithNoPassword;
   created_at: Date | string;
 };
 
