@@ -8,8 +8,7 @@ import {MessageResponse} from '@sharedTypes/MessageTypes';
 const fetchAllTags = async (): Promise<TagResult[] | null> => {
   try {
     const [rows] = await promisePool.execute<RowDataPacket[] & TagResult[]>(
-      `SELECT Tags.tag_id, Tags.tag_name, MIN(PostsTags.post_id) AS post_id
-      FROM Tags
+      `SELECT Tags.tag_id, Tags.tag_name, MIN(PostsTags.tag_id) AS post_id FROM Tags
       JOIN PostsTags ON Tags.tag_id = PostsTags.tag_id
       GROUP BY Tags.tag_id, Tags.tag_name;`
     );
