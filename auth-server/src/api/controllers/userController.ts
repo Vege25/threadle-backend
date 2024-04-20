@@ -167,10 +167,17 @@ const customize = async (
     const user_level_id = req.body.user_level_id;
     const user_activity = req.body.user_activity;
 
+    console.log(
+      'result',
+      userFromToken.user_id,
+      description,
+      user_level_id,
+      user_activity
+    );
     const result = await customizeUser(
       description ? description : null,
       user_activity,
-      user_level_id,
+      Number(user_level_id),
       userFromToken.user_id
     );
 

@@ -360,7 +360,7 @@ router.get(
   checkUsernameExists
 );
 
-router.get(
+router.put(
   '/customize',
   authenticate,
   param('description').isString().escape(),
