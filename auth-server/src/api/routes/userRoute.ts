@@ -17,6 +17,8 @@ import {body, param} from 'express-validator';
 
 const router = express.Router();
 
+router.put('/customize', authenticate, customize);
+
 /**
  * @api {get} /users Get User List
  * @apiName GetUserList
@@ -358,15 +360,6 @@ router.get(
   '/username/:username',
   param('username').isString().escape(),
   checkUsernameExists
-);
-
-router.put(
-  '/customize',
-  authenticate,
-  param('description').isString().escape(),
-  param('user_activity').isString().escape(),
-  param('user_level_id').isNumeric(),
-  customize
 );
 
 export default router;

@@ -149,21 +149,10 @@ const userPut = async (
   }
 };
 const customize = async (
-  req: Request<{}, {}, User>,
+  req: Request,
   res: Response<MessageResponse>,
   next: NextFunction
 ) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    const messages: string = errors
-      .array()
-      .map((error) => `${error.msg}: ${error.param}`)
-      .join(', ');
-    console.log('userPut validation', messages);
-    next(new CustomError(messages, 400));
-    return;
-  }
-
   try {
     const userFromToken = res.locals.user;
 
