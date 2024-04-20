@@ -3,6 +3,7 @@ import {
   checkEmailExists,
   checkToken,
   checkUsernameExists,
+  customize,
   userDelete,
   userDeleteAsAdmin,
   userGet,
@@ -357,6 +358,15 @@ router.get(
   '/username/:username',
   param('username').isString().escape(),
   checkUsernameExists
+);
+
+router.get(
+  '/customize',
+  authenticate,
+  param('description').isString().escape(),
+  param('user_activity').isString().escape(),
+  param('user_level_id').isNumeric(),
+  customize
 );
 
 export default router;

@@ -6,6 +6,7 @@ import bcrypt from 'bcryptjs';
 import {UserDeleteResponse, UserResponse} from '@sharedTypes/MessageTypes';
 import {
   createUser,
+  customizeUser,
   deleteUser,
   getAllUsers,
   getUserByEmail,
@@ -136,6 +137,52 @@ const userPut = async (
 
     const response: UserResponse = {
       message: 'user updated',
+      user: result,
+    };
+    res.json(response);
+  } catch (error) {
+    next(new CustomError((error as Error).message, 500));
+  }
+};
+const customize = async (
+  req: Request<{}, {}, User>,
+  res: Response<UserResponse, {user: TokenContent}>,
+  next: NextFunction
+) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const messages: string = errors
+      .array()
+      .map((error) => `${error.msg}: ${error.param}`)
+      .join(', ');
+    console.log('userPut validation', messages);
+    next(new CustomError(messages, 400));
+    return;
+  }
+
+  try {
+    const userFromToken = res.locals.user;
+
+    const description = req.body.description;
+    const user_level_id = req.body.user_level_id;
+    const user_activity = req.body.user_activity;
+
+    const result = await customizeUser(
+      description ? description : null,
+      user_activity,
+      user_level_id,
+      userFromToken.user_id
+    );
+
+    if (!result) {
+      next(new CustomError('User not found', 404));
+      return;
+    }
+
+    console.log('put result', result);
+
+    const response: UserResponse = {
+      message: 'user customized',
       user: result,
     };
     res.json(response);
@@ -324,4 +371,5 @@ export {
   checkToken,
   checkEmailExists,
   checkUsernameExists,
+  customize,
 };

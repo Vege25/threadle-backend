@@ -187,6 +187,36 @@ const modifyUser = async (
     throw new Error((e as Error).message);
   }
 };
+const customizeUser = async (
+  description: string | null,
+  user_activity: string,
+  user_level_id: number,
+  user_id: number
+): Promise<UserWithNoPassword | null> => {
+  try {
+    const sql = promisePool.format(
+      `
+      UPDATE Users
+      SET description = ?, user_activity = ?, user_level_id = ?
+      WHERE user_id = ?
+
+      `,
+      [description, user_activity, user_level_id, user_id]
+    );
+
+    const result = await promisePool.execute<ResultSetHeader>(sql);
+
+    if (result[0].affectedRows === 0) {
+      return null;
+    }
+
+    const newUser = await getUserById(user_id);
+    return newUser;
+  } catch (e) {
+    console.error('customizeUser error', (e as Error).message);
+    throw new Error((e as Error).message);
+  }
+};
 
 const deleteUser = async (id: number): Promise<UserDeleteResponse | null> => {
   const connection = await promisePool.getConnection();
@@ -240,5 +270,6 @@ export {
   getUserByUsername,
   createUser,
   modifyUser,
+  customizeUser,
   deleteUser,
 };
