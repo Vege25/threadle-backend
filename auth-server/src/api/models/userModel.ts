@@ -1,7 +1,7 @@
 import {ResultSetHeader, RowDataPacket} from 'mysql2';
 import {promisePool} from '../../lib/db';
 import {UserWithLevel, User, UserWithNoPassword} from '@sharedTypes/DBTypes';
-import {UserDeleteResponse} from '@sharedTypes/MessageTypes';
+import {MessageResponse, UserDeleteResponse} from '@sharedTypes/MessageTypes';
 
 const getUserById = async (id: number): Promise<UserWithNoPassword | null> => {
   try {
@@ -192,7 +192,7 @@ const customizeUser = async (
   user_activity: string,
   user_level_id: number,
   user_id: number
-): Promise<UserWithNoPassword | null> => {
+): Promise<MessageResponse | null> => {
   try {
     let sql = '';
     let params: (string | number)[] = [];
@@ -221,8 +221,8 @@ const customizeUser = async (
       return null;
     }
 
-    const newUser = await getUserById(user_id);
-    return newUser;
+    // const newUser = await getUserById(user_id);
+    return {message: 'user cutsomized'};
   } catch (e) {
     console.error('customizeUser error', (e as Error).message);
     throw new Error((e as Error).message);

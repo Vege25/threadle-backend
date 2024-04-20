@@ -3,7 +3,11 @@
 import {NextFunction, Request, Response} from 'express';
 import CustomError from '../../classes/CustomError';
 import bcrypt from 'bcryptjs';
-import {UserDeleteResponse, UserResponse} from '@sharedTypes/MessageTypes';
+import {
+  MessageResponse,
+  UserDeleteResponse,
+  UserResponse,
+} from '@sharedTypes/MessageTypes';
 import {
   createUser,
   customizeUser,
@@ -146,7 +150,7 @@ const userPut = async (
 };
 const customize = async (
   req: Request<{}, {}, User>,
-  res: Response<UserResponse, {user: TokenContent}>,
+  res: Response<MessageResponse>,
   next: NextFunction
 ) => {
   const errors = validationResult(req);
@@ -188,9 +192,8 @@ const customize = async (
 
     console.log('put result', result);
 
-    const response: UserResponse = {
+    const response = {
       message: 'user customized',
-      user: result,
     };
     res.json(response);
   } catch (error) {
