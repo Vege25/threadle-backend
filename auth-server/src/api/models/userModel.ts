@@ -194,17 +194,28 @@ const customizeUser = async (
   user_id: number
 ): Promise<UserWithNoPassword | null> => {
   try {
-    const sql = promisePool.format(
-      `
-      UPDATE Users
-      SET description = ?, user_activity = ?, user_level_id = ?
-      WHERE user_id = ?
+    let sql = '';
+    let params: (string | number)[] = [];
 
-      `,
-      [description, user_activity, user_level_id, user_id]
-    );
+    if (description !== null) {
+      // If description is not null, update it in the query
+      sql = `
+        UPDATE Users
+        SET description = ?, user_activity = ?, user_level_id = ?
+        WHERE user_id = ?
+      `;
+      params = [description, user_activity, user_level_id, user_id];
+    } else {
+      // If description is null, set it to NULL in the database
+      sql = `
+        UPDATE Users
+        SET description = NULL, user_activity = ?, user_level_id = ?
+        WHERE user_id = ?
+      `;
+      params = [user_activity, user_level_id, user_id];
+    }
 
-    const result = await promisePool.execute<ResultSetHeader>(sql);
+    const result = await promisePool.execute<ResultSetHeader>(sql, params);
 
     if (result[0].affectedRows === 0) {
       return null;
