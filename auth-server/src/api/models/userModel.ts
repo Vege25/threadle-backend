@@ -16,7 +16,8 @@ const getUserById = async (id: number): Promise<UserWithNoPassword | null> => {
       Users.created_at,
       Users.description,
       Users.user_activity,
-      UserLevels.level_name
+      UserLevels.level_name,
+      Users.pfp_url
     FROM Users
     JOIN UserLevels
     ON Users.user_level_id = UserLevels.level_id
@@ -47,7 +48,8 @@ const getAllUsers = async (): Promise<UserWithNoPassword[] | null> => {
       Users.description,
       Users.created_at,
       Users.user_activity,
-      UserLevels.level_name
+      UserLevels.level_name,
+      Users.pfp_url
     FROM Users
     JOIN UserLevels
     ON Users.user_level_id = UserLevels.level_id
@@ -77,7 +79,8 @@ const getUserByEmail = async (email: string): Promise<UserWithLevel | null> => {
       Users.description,
       Users.created_at,
       Users.user_activity,
-      UserLevels.level_name
+      UserLevels.level_name,
+      Users.pfp_url
     FROM Users
     JOIN UserLevels
     ON Users.user_level_id = UserLevels.level_id
@@ -109,7 +112,8 @@ const getUserByUsername = async (
       Users.description,
       Users.created_at,
       Users.user_activity,
-      UserLevels.level_name
+      UserLevels.level_name,
+      Users.pfp_url
     FROM Users
     JOIN UserLevels
     ON Users.user_level_id = UserLevels.level_id
@@ -189,31 +193,33 @@ const modifyUser = async (
 };
 const customizeUser = async (
   description: string | null,
-  user_activity: string,
-  user_level_id: number,
-  user_id: number
+  user_activity: string | null,
+  user_level_id: number | null,
+  user_id: number,
+  pfp_url: string | null
 ): Promise<MessageResponse | null> => {
   try {
-    let sql = '';
-    let params: (string | number)[] = [];
+    let sql = `
+      UPDATE Users
+      SET user_activity = ?, user_level_id = ?
+    `;
+    let params: (string | number)[] = [
+      user_activity || 'active',
+      user_level_id || 2,
+    ];
 
+    // Add description and pfp_url to the query only if they are provided
     if (description !== null) {
-      // If description is not null, update it in the query
-      sql = `
-        UPDATE Users
-        SET description = ?, user_activity = ?, user_level_id = ?
-        WHERE user_id = ?
-      `;
-      params = [description, user_activity, user_level_id, user_id];
-    } else {
-      // If description is null, set it to NULL in the database
-      sql = `
-        UPDATE Users
-        SET description = NULL, user_activity = ?, user_level_id = ?
-        WHERE user_id = ?
-      `;
-      params = [user_activity, user_level_id, user_id];
+      sql += ', description = ?';
+      params.push(description);
     }
+    if (pfp_url !== null) {
+      sql += ', pfp_url = ?';
+      params.push(pfp_url);
+    }
+
+    sql += ' WHERE user_id = ?';
+    params.push(user_id);
 
     const result = await promisePool.execute<ResultSetHeader>(sql, params);
 
@@ -221,8 +227,7 @@ const customizeUser = async (
       return null;
     }
 
-    // const newUser = await getUserById(user_id);
-    return {message: 'user cutsomized'};
+    return {message: 'user customized'};
   } catch (e) {
     console.error('customizeUser error', (e as Error).message);
     throw new Error((e as Error).message);

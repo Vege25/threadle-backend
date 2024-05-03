@@ -50,6 +50,7 @@ const login = async (
       description: user.description,
       user_activity: user.user_activity,
       level_name: user.level_name,
+      pfp_url: user.pfp_url,
     };
 
     const tokenContent: TokenContent = {

@@ -159,19 +159,22 @@ const customize = async (
     const description = req.body.description;
     const user_level_id = req.body.user_level_id;
     const user_activity = req.body.user_activity;
+    const pfp_url = req.body.pfp_url;
 
     console.log(
       'result',
       userFromToken.user_id,
       description,
       user_level_id,
-      user_activity
+      user_activity,
+      pfp_url
     );
     const result = await customizeUser(
       description ? description : null,
       user_activity,
       Number(user_level_id),
-      userFromToken.user_id
+      userFromToken.user_id,
+      pfp_url ? pfp_url : null
     );
 
     if (!result) {
