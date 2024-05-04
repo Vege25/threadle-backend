@@ -103,7 +103,7 @@ const chatMessagePost = async (
 };
 const getAllMyChats = async (
   req: Request,
-  res: Response<Chats[]>,
+  res: Response<Chats[] | MessageResponse>,
   next: NextFunction
 ) => {
   try {
@@ -113,8 +113,8 @@ const getAllMyChats = async (
       return;
     }
     const chats = await getMyChats(user.user_id);
-    if (chats === null) {
-      next(new CustomError('Chats not found', 404));
+    if (!chats || chats.length === 0) {
+      res.json({message: 'No chat messages'}); // Return a message when there are no chats
       return;
     }
 
