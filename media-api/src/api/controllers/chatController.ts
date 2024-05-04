@@ -142,6 +142,7 @@ const createChat = async (
   try {
     const sender = res.locals.user;
     const receiver_id = Number(req.params.id);
+    const post_id = Number(req.body.post_id);
 
     if (!sender) {
       next(new CustomError('Sender user not found', 404));
@@ -167,7 +168,11 @@ const createChat = async (
     }
 
     // Create chat conversation
-    const messageRes = await addChat(Number(sender.user_id), receiver_id);
+    const messageRes = await addChat(
+      Number(sender.user_id),
+      receiver_id,
+      post_id ? post_id : null
+    );
     if (!messageRes) {
       next(new CustomError('Chat message not added', 500));
       return;

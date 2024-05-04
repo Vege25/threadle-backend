@@ -166,7 +166,8 @@ const getChatBySenderReceiver = async (
 };
 const addChat = async (
   sender_id: number,
-  receiver_id: number
+  receiver_id: number,
+  post_id: number | null
 ): Promise<MessageResponse | null> => {
   let connection;
   try {
@@ -175,7 +176,9 @@ const addChat = async (
     await connection.beginTransaction();
 
     const chatInsertQuery = `
-      INSERT INTO Chats (sender_id, receiver_id) VALUES (?, ?);
+      INSERT INTO Chats (sender_id, receiver_id${
+        post_id !== null && ', post_id'
+      }) VALUES (?, ?${post_id !== null && ', ?'});
     `;
     const chatInsertResult = await connection.execute<ResultSetHeader>(
       chatInsertQuery,
