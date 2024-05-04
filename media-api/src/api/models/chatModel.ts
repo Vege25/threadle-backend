@@ -175,25 +175,41 @@ const addChat = async (
 
     await connection.beginTransaction();
 
-    const chatInsertQuery = `
-      INSERT INTO Chats (sender_id, receiver_id${
-        post_id !== null && ', post_id'
-      }) VALUES (?, ?${post_id !== null && ', ?'});
-    `;
-    const chatInsertResult = await connection.execute<ResultSetHeader>(
-      chatInsertQuery,
-      [sender_id, receiver_id]
-    );
+    let chatId: number | null = null;
 
-    if (chatInsertResult[0].affectedRows === 0) {
+    if (post_id !== null) {
+      // Insert into Chats with post_id
+      const chatInsertQuery = `
+        INSERT INTO Chats (sender_id, receiver_id, post_id)
+        VALUES (?, ?, ?);
+      `;
+      const [chatInsertResult] = await connection.execute<ResultSetHeader>(
+        chatInsertQuery,
+        [sender_id, receiver_id, post_id]
+      );
+      chatId = chatInsertResult.insertId;
+    } else {
+      // Insert into Chats without post_id
+      const chatInsertQuery = `
+        INSERT INTO Chats (sender_id, receiver_id)
+        VALUES (?, ?);
+      `;
+      const [chatInsertResult] = await connection.execute<ResultSetHeader>(
+        chatInsertQuery,
+        [sender_id, receiver_id]
+      );
+      chatId = chatInsertResult.insertId;
+    }
+
+    if (chatId === null) {
       await connection.rollback();
       return null;
     }
 
-    const chatId = chatInsertResult[0].insertId;
-
+    // Insert into ChatMessages
     const chatMessageInsertQuery = `
-      INSERT INTO ChatMessages (chat_id, sender_id, receiver_id, message) VALUES (?, ?, ?, ?);
+      INSERT INTO ChatMessages (chat_id, sender_id, receiver_id, message)
+      VALUES (?, ?, ?, ?);
     `;
     const chatMessageInsertResult = await connection.execute<ResultSetHeader>(
       chatMessageInsertQuery,
@@ -228,6 +244,7 @@ const addChat = async (
     }
   }
 };
+
 const getChatByChatId = async (
   chat_id: number
 ): Promise<ChatResponse | null> => {
