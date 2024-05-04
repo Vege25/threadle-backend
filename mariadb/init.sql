@@ -32,6 +32,7 @@ CREATE TABLE `Users` (
   `password` VARCHAR(255) NOT NULL,
   `description` VARCHAR(255),
   `email` VARCHAR(100) UNIQUE NOT NULL,
+  `pfp_url` VARCHAR(255),
   `user_level_id` INT,
   `user_activity` ENUM ('Active', 'Away', 'Do not disturb') DEFAULT 'Active',
   `created_at` TIMESTAMP DEFAULT (CURRENT_TIMESTAMP),
@@ -66,11 +67,13 @@ CREATE TABLE `Posts` (
 
 CREATE TABLE `Chats` (
   `chat_id` INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+  `post_id` INT,
   `sender_id` INT NOT NULL,
   `receiver_id` INT NOT NULL,
   `created_at` TIMESTAMP DEFAULT (CURRENT_TIMESTAMP),
   FOREIGN KEY (`sender_id`) REFERENCES `Users` (`user_id`),
-  FOREIGN KEY (`receiver_id`) REFERENCES `Users` (`user_id`)
+  FOREIGN KEY (`receiver_id`) REFERENCES `Users` (`user_id`),
+  FOREIGN KEY (`post_id`) REFERENCES `Posts` (`post_id`)
 );
 
 CREATE TABLE `ChatMessages` (

@@ -12,6 +12,7 @@ type User = {
   user_level_id: number;
   user_activity: 'Active' | 'Away' | 'Do not disturb';
   created_at: Date | string;
+  pfp_url: string | null;
 };
 
 type PostItem = {
@@ -29,6 +30,7 @@ type PostItem = {
 
 type Chats = {
   chat_id: number;
+  post_id: number | null;
   sender_id: number;
   receiver_id: number;
   created_at: Date | string;

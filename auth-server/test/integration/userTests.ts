@@ -1,4 +1,5 @@
 import {UserWithLevel} from '@sharedTypes/DBTypes';
+import {MessageResponse} from '@sharedTypes/MessageTypes';
 
 import {Express} from 'express';
 import request from 'supertest';
@@ -27,4 +28,26 @@ const getAllUsers = (
       });
   });
 };
-export {getAllUsers};
+
+type MockData = {
+  description: string;
+  user_level_id: number;
+  user_activity: string;
+  pfp_url: string;
+};
+
+const customize = (mockData: MockData): Promise<MessageResponse> => {
+  return new Promise((resolve, reject) => {
+    // Simulating the request processing using setTimeout
+    setTimeout(() => {
+      if (mockData.description === 'error') {
+        reject(new Error('Simulated error'));
+      } else {
+        const response: MessageResponse = {message: 'user customized'};
+        resolve(response);
+      }
+    }, 1000); // Simulating a delay of 1 second
+  });
+};
+
+export {getAllUsers, customize};

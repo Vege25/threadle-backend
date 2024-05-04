@@ -29,6 +29,7 @@ type UserDeleteResponse = MessageResponse & {
 
 type ChatResponse = {
   chat_id: number;
+  post_id: number | null;
   sender_id: number;
   receiver_id: number;
   other_user: UserWithNoPassword;
