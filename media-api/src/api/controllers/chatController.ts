@@ -173,6 +173,7 @@ const createChat = async (
       return;
     }
     console.log('chat Added', messageRes);
+
     res.json(messageRes);
   } catch (error) {
     next(new CustomError('Duplicate entry', 200));

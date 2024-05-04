@@ -8,7 +8,7 @@ const getMessages = async (): Promise<ChatMessages[] | null> => {
   try {
     const [rows] = await promisePool.execute<RowDataPacket[] & ChatMessages[]>(
       `
-      SELECT c.chat_id, c.user_id, c.message_text, c.created_at
+      SELECT c.chat_id, c.post_id, c.user_id, c.message_text, c.created_at
       FROM Chat c
       JOIN Users u ON c.user_id = u.user_id
       WHERE u.is_banned = false OR u.is_banned IS NULL;
@@ -29,7 +29,7 @@ const getMyChatsById = async (id: number): Promise<ChatMessages[] | null> => {
   try {
     const [rows] = await promisePool.execute<RowDataPacket[] & ChatMessages[]>(
       `
-      SELECT c.chat_id, c.receiver_id, c.sender_id, c.created_at
+      SELECT c.chat_id, c.post_id, c.receiver_id, c.sender_id, c.created_at
       FROM Chat c
       WHERE c.receiver_id = ? OR c.sender_id = ?
   `,
@@ -123,7 +123,7 @@ const getMyChats = async (id: number): Promise<Chats[] | null> => {
   try {
     const [rows] = await promisePool.execute<RowDataPacket[] & Chats[]>(
       `
-      SELECT c.chat_id, c.receiver_id, c.sender_id, c.created_at
+      SELECT c.chat_id, c.post_id, c.receiver_id, c.sender_id, c.created_at
       FROM Chats c
       WHERE c.receiver_id = ? OR c.sender_id = ?;
   `,
@@ -147,7 +147,7 @@ const getChatBySenderReceiver = async (
   try {
     const [rows] = await promisePool.execute<RowDataPacket[] & ChatResponse[]>(
       `
-      SELECT c.chat_id, c.receiver_id, c.sender_id, c.created_at
+      SELECT c.chat_id, c.post_id, c.receiver_id, c.sender_id, c.created_at
       FROM Chats c
       WHERE c.receiver_id = ? AND c.sender_id = ? OR c.receiver_id = ? AND c.sender_id = ?;
   `,
@@ -168,28 +168,61 @@ const addChat = async (
   sender_id: number,
   receiver_id: number
 ): Promise<MessageResponse | null> => {
+  let connection;
   try {
-    const result = await promisePool.execute<ResultSetHeader>(
-      `
-    INSERT INTO Chats (sender_id, receiver_id) VALUES (?, ?);
-  `,
+    connection = await promisePool.getConnection();
+
+    await connection.beginTransaction();
+
+    const chatInsertQuery = `
+      INSERT INTO Chats (sender_id, receiver_id) VALUES (?, ?);
+    `;
+    const chatInsertResult = await connection.execute<ResultSetHeader>(
+      chatInsertQuery,
       [sender_id, receiver_id]
     );
 
-    if (result[0].affectedRows === 0) {
+    if (chatInsertResult[0].affectedRows === 0) {
+      await connection.rollback();
       return null;
     }
+
+    const chatId = chatInsertResult[0].insertId;
+
+    const chatMessageInsertQuery = `
+      INSERT INTO ChatMessages (chat_id, sender_id, receiver_id, message) VALUES (?, ?, ?, ?);
+    `;
+    const chatMessageInsertResult = await connection.execute<ResultSetHeader>(
+      chatMessageInsertQuery,
+      [chatId, sender_id, receiver_id, 'Created this chat.']
+    );
+
+    if (chatMessageInsertResult[0].affectedRows === 0) {
+      await connection.rollback();
+      return null;
+    }
+
+    await connection.commit();
 
     return {
       message:
         'Chat conversation started by user_id: ' +
         sender_id +
         ' with user_id: ' +
-        receiver_id,
+        receiver_id +
+        '. Message sent: ' +
+        'Created this chat.',
     };
   } catch (e) {
     console.error('addChat error', (e as Error).message);
+    if (connection) {
+      await connection.rollback();
+    }
     throw new Error((e as Error).message);
+  } finally {
+    if (connection) {
+      connection.release();
+    }
   }
 };
 const getChatByChatId = async (
@@ -198,7 +231,7 @@ const getChatByChatId = async (
   try {
     const [rows] = await promisePool.execute<RowDataPacket[] & ChatResponse[]>(
       `
-      SELECT c.chat_id, c.receiver_id, c.sender_id, c.created_at
+      SELECT c.chat_id, c.post_id, c.receiver_id, c.sender_id, c.created_at
       FROM Chats c
       WHERE c.chat_id = ?;
   `,
