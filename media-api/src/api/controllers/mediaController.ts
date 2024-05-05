@@ -88,15 +88,17 @@ const mediaPost = async (
   }
 };
 const highlightMedia = async (
-  req: Request,
+  req: Request<{id: string}>,
   res: Response<MessageResponse>,
   next: NextFunction
 ) => {
   try {
+    const post_id = Number(req.params.id);
     const user_id = Number(res.locals.user.user_id);
-    const post_id = Number(req.body.post_id);
+    console.log('highlightMedia', user_id, post_id);
 
     const highlightMediaRes = await highlightMediaPut(post_id, user_id);
+    console.log('highlightMediaRes', highlightMediaRes);
     if (highlightMediaRes === null) {
       const error = new CustomError('Media not highlighted', 500);
       next(error);

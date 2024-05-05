@@ -40,7 +40,7 @@ const fetchAllMediaByUserId = async (
       `SELECT *,
       CONCAT(?, filename) AS filename,
       CONCAT(?, CONCAT(filename, "-thumb.png")) AS thumbnail
-      FROM Posts WHERE user_id = ?;`,
+      FROM Posts WHERE user_id = ? ORDER BY created_at DESC;`,
       [uploadPath, uploadPath, user_id]
     );
     if (rows.length === 0) {

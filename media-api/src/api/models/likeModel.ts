@@ -84,7 +84,7 @@ const deleteLike = async (post_id: number, user_id: number) => {
 const getUserSaves = async (user_id: number): Promise<Save[]> => {
   try {
     const [rows] = await promisePool.execute<RowDataPacket[]>(
-      'SELECT * FROM Saves WHERE user_id = ?;',
+      'SELECT * FROM Saves WHERE user_id = ? ORDER BY created_at DESC;',
       [user_id]
     );
 
