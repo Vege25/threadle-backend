@@ -1,6 +1,6 @@
 import {ResultSetHeader, RowDataPacket} from 'mysql2';
 import promisePool from '../../lib/db';
-import {Like} from '@sharedTypes/DBTypes';
+import {Like, Save} from '@sharedTypes/DBTypes';
 
 const postLike = async (post_id: number, user_id: number) => {
   try {
@@ -32,7 +32,7 @@ const postLike = async (post_id: number, user_id: number) => {
 const getUserLike = async (
   post_id: number,
   user_id: number
-): Promise<Like | null> => {
+): Promise<Save | null> => {
   try {
     const [rows] = await promisePool.execute<RowDataPacket[] & Like>(
       'SELECT * FROM Saves WHERE post_id = ? AND user_id = ?;',
@@ -41,7 +41,7 @@ const getUserLike = async (
     if (rows.length === 0) {
       return null;
     }
-    const like: Like = rows[0] as Like;
+    const like: Save = rows[0] as Save;
     return like;
   } catch (e) {
     console.error('getUserLike error', (e as Error).message);
@@ -81,4 +81,28 @@ const deleteLike = async (post_id: number, user_id: number) => {
   }
 };
 
-export {postLike, getUserLike, getCountByMediaId, deleteLike};
+const getUserSaves = async (user_id: number): Promise<Save[]> => {
+  try {
+    const [rows] = await promisePool.execute<RowDataPacket[]>(
+      'SELECT * FROM Saves WHERE user_id = ?;',
+      [user_id]
+    );
+
+    // Map the rows from RowDataPacket[] to Save[]
+    const likes: Save[] = rows.map((row: RowDataPacket) => {
+      return {
+        save_id: row.save_id,
+        post_id: row.post_id,
+        user_id: row.user_id,
+        created_at: row.created_at,
+      };
+    });
+
+    return likes;
+  } catch (e) {
+    console.error('getUserSaves error', (e as Error).message);
+    throw new Error((e as Error).message);
+  }
+};
+
+export {postLike, getUserLike, getCountByMediaId, deleteLike, getUserSaves};
