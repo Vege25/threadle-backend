@@ -83,5 +83,26 @@ const likeGet = async (
     next(error);
   }
 };
+const userLikeGet = async (
+  req: Request<{post_id: string}>,
+  res: Response<{liked: boolean}>,
+  next: NextFunction
+) => {
+  try {
+    const post_id = Number(req.params.post_id);
+    const user_id = Number(res.locals.user.user_id);
 
-export {likePost, likeDelete, likeGet};
+    const result = await getUserLike(post_id, user_id);
+
+    if (result === null) {
+      res.json({liked: false});
+      return;
+    }
+
+    res.json({liked: true});
+  } catch (error) {
+    next(error);
+  }
+};
+
+export {likePost, likeDelete, likeGet, userLikeGet};
