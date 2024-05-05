@@ -125,7 +125,7 @@ const getMyChats = async (id: number): Promise<Chats[] | null> => {
       `
       SELECT c.chat_id, c.post_id, c.receiver_id, c.sender_id, c.created_at
       FROM Chats c
-      WHERE c.receiver_id = ? OR c.sender_id = ?;
+      WHERE c.receiver_id = ? OR c.sender_id = ? ORDER BY c.created_at DESC;
   `,
       [id, id]
     );
